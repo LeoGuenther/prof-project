@@ -41,11 +41,31 @@
   }
 
   function portrait(p, size) {
+    if (p.foto) {
+      return '<div class="portrait portrait--' + size + ' has-photo">' +
+        '<img src="' + esc(p.foto) + '" alt="Porträt von ' + esc(fullName(p)) + ' (Symbolfoto)" loading="' + (size === "lg" ? "eager" : "lazy") + '" decoding="async">' +
+        '<span aria-hidden="true">' + esc(initials(p)) + "</span>" +
+        (size === "lg" ? '<small aria-hidden="true">Symbolfoto</small>' : "") +
+        "</div>";
+    }
     return '<div class="portrait portrait--' + size + '" role="img" aria-label="Porträt-Platzhalter für ' + esc(fullName(p)) + '">' +
       '<span aria-hidden="true">' + esc(initials(p)) + "</span>" +
       (size === "lg" ? '<small aria-hidden="true">Foto folgt</small>' : "") +
       "</div>";
   }
+
+  // Fehlt eine Bilddatei, zeigt das Porträt automatisch wieder die Initialen.
+  document.addEventListener("error", function (e) {
+    var img = e.target;
+    if (!img || img.tagName !== "IMG" || !img.parentNode || !img.parentNode.classList.contains("portrait")) return;
+    var box = img.parentNode;
+    box.classList.remove("has-photo");
+    box.setAttribute("role", "img");
+    box.setAttribute("aria-label", img.alt.replace(/^Porträt von /, "Porträt-Platzhalter für ").replace(/ \(Symbolfoto\)$/, ""));
+    var cap = box.querySelector("small");
+    if (cap) cap.textContent = "Foto folgt";
+    img.remove();
+  }, true);
 
   function sealSvg(cls) {
     var id = "seal-path-" + (++uid);
@@ -410,6 +430,10 @@
       '<div class="input-wrap"><label class="visually-hidden" for="search-q">Thema oder Name</label>' +
       '<input id="search-q" type="search" placeholder="Thema oder Name" autocomplete="off" enterkeyhint="search" value="' + esc(state.q) + '"></div>' +
       '<button class="btn btn-primary" type="submit">Suchen</button></form>' +
+      '<div class="suggest"><span class="label" id="suggest-label">Gefragt:</span>' +
+      '<ul class="chips chips--scroll" aria-labelledby="suggest-label">' +
+      THEMEN.map(function (t) { return '<li><button type="button" class="chip" data-suggest="' + esc(t.q) + '" aria-pressed="false">' + esc(t.label) + "</button></li>"; }).join("") +
+      "</ul></div>" +
       '<div class="search-cols">' +
       '<details class="filters" id="filters"' + (desktop ? " open" : "") + '><summary>Filter <span class="filter-count" id="filter-count"></span></summary>' +
       '<div class="filter-body">' +
@@ -435,6 +459,16 @@
       if (!window.matchMedia("(min-width: 900px)").matches) input.blur();
     });
     input.addEventListener("input", function () { state.q = input.value; updateResults(); });
+    // Themen-Vorschläge: bleiben immer sichtbar, übernehmen das Thema und behalten die Filter
+    document.querySelectorAll("[data-suggest]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var q = b.getAttribute("data-suggest");
+        var active = b.getAttribute("aria-pressed") === "true";
+        state.q = active ? "" : q;
+        input.value = state.q;
+        updateResults();
+      });
+    });
     [["f-fach", "fach"], ["f-format", "format"], ["f-region", "region"], ["f-sprache", "sprache"]].forEach(function (pair) {
       document.getElementById(pair[0]).addEventListener("change", function (e) { state[pair[1]] = e.target.value; updateResults(); });
     });
@@ -458,6 +492,9 @@
     var fc = activeFilterCount();
     document.getElementById("filter-count").textContent = fc ? plural(fc, "aktiv", "aktiv") : "";
     var q = state.q.trim();
+    document.querySelectorAll("[data-suggest]").forEach(function (b) {
+      b.setAttribute("aria-pressed", q && norm(b.getAttribute("data-suggest")) === norm(q) ? "true" : "false");
+    });
     if (n) {
       countEl.textContent = plural(n, "Profil", "Profile") + (q ? " zu „" + q + "“" : "");
       box.innerHTML = '<ul class="card-grid">' + list.map(function (p) { return "<li>" + card(p, 3) + "</li>"; }).join("") + "</ul>";
@@ -698,8 +735,16 @@
       "<section><h2>Angaben gemäß § 5 DDG</h2><p>" + esc(SITE.name) + ' <span class="ph">(Arbeitstitel)</span><br><span class="ph">Name des Betreibers</span><br><span class="ph">Straße und Hausnummer</span><br><span class="ph">Postleitzahl und Ort</span></p></section>' +
       "<section><h2>Kontakt</h2><p>E-Mail: " + esc(SITE.kontaktEmail) + '<br>Telefon: <span class="ph">wird ergänzt</span></p></section>' +
       '<section><h2>Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV</h2><p><span class="ph">Name und Anschrift wie oben</span></p></section>' +
+      "<section><h2>Bildnachweis</h2>" + bildnachweis() + "</section>" +
       "<section><h2>Hinweis zu den Profilen</h2><p>Alle Profile in diesem Prototyp sind erfunden. Namen, Lebensläufe, Publikationen und Referenzen dienen nur der Veranschaulichung. Ähnlichkeiten mit realen Personen sind nicht beabsichtigt.</p></section>" +
       "</div></div>";
+  }
+
+  function bildnachweis() {
+    var mit = PROFILES.filter(function (p) { return p.foto && p.fotoNachweis; });
+    if (!mit.length) return "<p>Die Porträts sind gestaltete Platzhalter. Bildnachweise folgen, sobald Fotos eingebunden sind.</p>";
+    return "<p>Die Porträts sind Symbolfotos. Die abgebildeten Personen stehen in keinem Zusammenhang mit den fiktiven Profilen.</p><ul>" +
+      mit.map(function (p) { return "<li>" + esc(p.vorname + " " + p.nachname) + ": " + esc(p.fotoNachweis) + "</li>"; }).join("") + "</ul>";
   }
 
   function pageDatenschutz() {

@@ -70,7 +70,7 @@ const HEIGHTS = { 390: 844, 820: 1180, 1180: 820, 1440: 900 };
             const b = el.getBoundingClientRect();
             if (b.width && (b.right > de.clientWidth + 1 || b.left < -1)) {
               const cs = getComputedStyle(el);
-              if (cs.position !== "fixed" && !el.closest(".visually-hidden") && !el.closest(".seal-pop") && !el.closest(".mobilebar.is-hidden")) wide.push(el.tagName + "." + el.className);
+              if (cs.position !== "fixed" && !el.closest(".visually-hidden") && !el.closest(".seal-pop") && !el.closest(".mobilebar.is-hidden") && !el.closest(".chips--scroll")) wide.push(el.tagName + "." + el.className);
             }
           });
           // Abgeschnittener Text (overflow hidden mit scrollWidth > clientWidth)
@@ -169,6 +169,24 @@ const HEIGHTS = { 390: 844, 820: 1180, 1180: 820, 1440: 900 };
     const rr = await searchFor(t.q);
     check(`Thema „${t.label}“ liefert Treffer`, rr.names.length > 0, rr.count);
   }
+
+  // Themen-Vorschläge auf der Suchseite bleiben sichtbar
+  await go(page, "suche");
+  await page.click("#f-reset");
+  check("Suchseite: Themen-Vorschläge bei leerer Suche sichtbar", (await page.$$eval("[data-suggest]", (b) => b.filter((x) => x.offsetParent).length)) === 8);
+  await page.selectOption("#f-fach", "recht");
+  await page.click('[data-suggest="KI Recht"]');
+  check("Vorschlag übernimmt Thema ins Suchfeld", (await page.$eval("#search-q", (i) => i.value)) === "KI Recht");
+  check("Vorschlag behält gesetzte Filter", (await page.$eval("#f-fach", (s) => s.value)) === "recht");
+  check("Gewählter Vorschlag ist markiert", (await page.$eval('[data-suggest="KI Recht"]', (b) => b.getAttribute("aria-pressed"))) === "true");
+  await page.fill("#search-q", "");
+  check("Nach Leeren der Suche bleiben alle Vorschläge sichtbar", (await page.$$eval("[data-suggest]", (b) => b.filter((x) => x.offsetParent).length)) === 8);
+  check("Nach Leeren ist kein Vorschlag mehr markiert", (await page.$$eval('[data-suggest][aria-pressed="true"]', (b) => b.length)) === 0);
+  await page.click('[data-suggest="Schlaf"]');
+  await page.click('[data-suggest="Schlaf"]');
+  check("Zweiter Klick auf Vorschlag hebt ihn wieder auf", (await page.$eval("#search-q", (i) => i.value)) === "");
+  await page.click("#f-reset");
+  check("Nach „Alles zurücksetzen“ bleiben die Vorschläge sichtbar", (await page.$$eval("[data-suggest]", (b) => b.length)) === 8);
 
   // Fachgebiete und Filter
   const fach = await page.evaluate(() => window.FACHGEBIETE.map((f) => f.key));
@@ -329,6 +347,35 @@ const HEIGHTS = { 390: 844, 820: 1180, 1180: 820, 1440: 900 };
     const sb = await p3.evaluate(() => getComputedStyle(document.querySelector(".btn")).transitionDuration);
     check("„Bewegung reduzieren“ wird respektiert", sb === "0s", sb);
     await ctx3.close();
+  }
+
+  // Fotos: mit Testbild wird das Foto gezeigt, bei fehlender Datei erscheinen die Initialen
+  {
+    const ctx4 = await browser.newContext({ viewport: { width: 1180, height: 820 } });
+    const p4 = await ctx4.newPage();
+    const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1000"><rect width="800" height="1000" fill="#888"/><circle cx="400" cy="380" r="160" fill="#ccc"/></svg>';
+    await p4.route("**/assets/profiles.js", async (route) => {
+      const body = fs.readFileSync(path.join(ROOT, "assets/profiles.js"), "utf8") +
+        '\nwindow.PROFILES[0].foto="assets/portraits/test.svg";window.PROFILES[0].fotoNachweis="Testbild";window.PROFILES[1].foto="assets/portraits/fehlt.jpg";';
+      await route.fulfill({ contentType: "text/javascript", body });
+    });
+    await p4.route("**/assets/portraits/test.svg", (route) => route.fulfill({ contentType: "image/svg+xml", body: svg }));
+    await p4.goto(BASE + "#profil-clara-venhoff");
+    await p4.waitForSelector(".p-pic img");
+    await p4.waitForFunction(() => document.querySelector(".p-pic img").complete);
+    const ok = await p4.evaluate(() => {
+      const img = document.querySelector(".p-pic img");
+      return img.naturalWidth > 0 && getComputedStyle(document.querySelector(".p-pic .portrait > span")).display === "none" && /Symbolfoto/.test(img.alt);
+    });
+    check("Foto wird im Profil angezeigt (Initialen ausgeblendet, Alternativtext vorhanden)", ok);
+    await p4.screenshot({ path: path.join(SHOTS, "foto-test.png") });
+    await p4.goto(BASE + "#profil-matthias-ohlendorf");
+    await p4.waitForTimeout(400);
+    const fb = await p4.evaluate(() => !document.querySelector(".p-pic img") && !document.querySelector(".p-pic .portrait").classList.contains("has-photo"));
+    check("Fehlende Bilddatei fällt sauber auf Initialen zurück", fb);
+    await p4.goto(BASE + "#impressum");
+    check("Bildnachweis erscheint im Impressum", /Testbild/.test(await p4.textContent("#main")));
+    await ctx4.close();
   }
 
   check("Keine Fehler in der Browser-Konsole", consoleErrors.length === 0, consoleErrors.slice(0, 5).join(" | "));
