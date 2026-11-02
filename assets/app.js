@@ -430,6 +430,10 @@
       '<div class="input-wrap"><label class="visually-hidden" for="search-q">Thema oder Name</label>' +
       '<input id="search-q" type="search" placeholder="Thema oder Name" autocomplete="off" enterkeyhint="search" value="' + esc(state.q) + '"></div>' +
       '<button class="btn btn-primary" type="submit">Suchen</button></form>' +
+      '<div class="suggest"><span class="label" id="suggest-label">Gefragt:</span>' +
+      '<ul class="chips chips--scroll" aria-labelledby="suggest-label">' +
+      THEMEN.map(function (t) { return '<li><button type="button" class="chip" data-suggest="' + esc(t.q) + '" aria-pressed="false">' + esc(t.label) + "</button></li>"; }).join("") +
+      "</ul></div>" +
       '<div class="search-cols">' +
       '<details class="filters" id="filters"' + (desktop ? " open" : "") + '><summary>Filter <span class="filter-count" id="filter-count"></span></summary>' +
       '<div class="filter-body">' +
@@ -455,6 +459,16 @@
       if (!window.matchMedia("(min-width: 900px)").matches) input.blur();
     });
     input.addEventListener("input", function () { state.q = input.value; updateResults(); });
+    // Themen-Vorschläge: bleiben immer sichtbar, übernehmen das Thema und behalten die Filter
+    document.querySelectorAll("[data-suggest]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        var q = b.getAttribute("data-suggest");
+        var active = b.getAttribute("aria-pressed") === "true";
+        state.q = active ? "" : q;
+        input.value = state.q;
+        updateResults();
+      });
+    });
     [["f-fach", "fach"], ["f-format", "format"], ["f-region", "region"], ["f-sprache", "sprache"]].forEach(function (pair) {
       document.getElementById(pair[0]).addEventListener("change", function (e) { state[pair[1]] = e.target.value; updateResults(); });
     });
@@ -478,6 +492,9 @@
     var fc = activeFilterCount();
     document.getElementById("filter-count").textContent = fc ? plural(fc, "aktiv", "aktiv") : "";
     var q = state.q.trim();
+    document.querySelectorAll("[data-suggest]").forEach(function (b) {
+      b.setAttribute("aria-pressed", q && norm(b.getAttribute("data-suggest")) === norm(q) ? "true" : "false");
+    });
     if (n) {
       countEl.textContent = plural(n, "Profil", "Profile") + (q ? " zu „" + q + "“" : "");
       box.innerHTML = '<ul class="card-grid">' + list.map(function (p) { return "<li>" + card(p, 3) + "</li>"; }).join("") + "</ul>";

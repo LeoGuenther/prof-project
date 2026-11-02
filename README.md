@@ -28,7 +28,7 @@ assets/config.js    Name, Domain, Claim, Kontaktadresse, Antwortzeit
 assets/profiles.js  ALLE Inhalte: Fachgebiete, Formate, aktuelle Themen, Profile
 assets/styles.css   Gestaltung; Farben und Schriften als Variablen ganz oben
 assets/app.js       Seiten, Suche, Filter, Formulare (keine Inhalte)
-tests/check.js      Automatische Prüfung (408 Einzelprüfungen)
+tests/check.js      Automatische Prüfung (416 Einzelprüfungen)
 tools/portraits.py  Bereitet Porträtfotos auf (Zuschnitt 4:5, Größe)
 ```
 

@@ -405,6 +405,28 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .hero-chips { margin-top: 18px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
 .hero-chips .label { font-size: var(--fs-sm); color: var(--ink-faint); }
 
+/* Themen-Vorschläge auf der Suchseite */
+.suggest { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; margin-top: 16px; min-width: 0; }
+.suggest .label { font-size: var(--fs-sm); color: var(--ink-faint); }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.chip[aria-pressed="true"]:hover { color: var(--on-accent); }
+@media (max-width: 719px) {
+  .chips--scroll {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    width: 100%;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    -webkit-mask-image: linear-gradient(to right, #000 85%, transparent);
+    mask-image: linear-gradient(to right, #000 85%, transparent);
+    padding-right: 32px;
+  }
+  .chips--scroll::-webkit-scrollbar { display: none; }
+  .chips--scroll li { flex: none; }
+}
+
 .featured {
   background: var(--surface);
   border: 1px solid var(--line);
