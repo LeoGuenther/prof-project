@@ -331,6 +331,35 @@ const HEIGHTS = { 390: 844, 820: 1180, 1180: 820, 1440: 900 };
     await ctx3.close();
   }
 
+  // Fotos: mit Testbild wird das Foto gezeigt, bei fehlender Datei erscheinen die Initialen
+  {
+    const ctx4 = await browser.newContext({ viewport: { width: 1180, height: 820 } });
+    const p4 = await ctx4.newPage();
+    const svg = '<svg xmlns="http://www.w3.org/2000/svg" width="800" height="1000"><rect width="800" height="1000" fill="#888"/><circle cx="400" cy="380" r="160" fill="#ccc"/></svg>';
+    await p4.route("**/assets/profiles.js", async (route) => {
+      const body = fs.readFileSync(path.join(ROOT, "assets/profiles.js"), "utf8") +
+        '\nwindow.PROFILES[0].foto="assets/portraits/test.svg";window.PROFILES[0].fotoNachweis="Testbild";window.PROFILES[1].foto="assets/portraits/fehlt.jpg";';
+      await route.fulfill({ contentType: "text/javascript", body });
+    });
+    await p4.route("**/assets/portraits/test.svg", (route) => route.fulfill({ contentType: "image/svg+xml", body: svg }));
+    await p4.goto(BASE + "#profil-clara-venhoff");
+    await p4.waitForSelector(".p-pic img");
+    await p4.waitForFunction(() => document.querySelector(".p-pic img").complete);
+    const ok = await p4.evaluate(() => {
+      const img = document.querySelector(".p-pic img");
+      return img.naturalWidth > 0 && getComputedStyle(document.querySelector(".p-pic .portrait > span")).display === "none" && /Symbolfoto/.test(img.alt);
+    });
+    check("Foto wird im Profil angezeigt (Initialen ausgeblendet, Alternativtext vorhanden)", ok);
+    await p4.screenshot({ path: path.join(SHOTS, "foto-test.png") });
+    await p4.goto(BASE + "#profil-matthias-ohlendorf");
+    await p4.waitForTimeout(400);
+    const fb = await p4.evaluate(() => !document.querySelector(".p-pic img") && !document.querySelector(".p-pic .portrait").classList.contains("has-photo"));
+    check("Fehlende Bilddatei fällt sauber auf Initialen zurück", fb);
+    await p4.goto(BASE + "#impressum");
+    check("Bildnachweis erscheint im Impressum", /Testbild/.test(await p4.textContent("#main")));
+    await ctx4.close();
+  }
+
   check("Keine Fehler in der Browser-Konsole", consoleErrors.length === 0, consoleErrors.slice(0, 5).join(" | "));
 
   await browser.close();

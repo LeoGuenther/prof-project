@@ -6,25 +6,30 @@
  */
 
 :root {
-  /* Farben (hell) */
-  --paper: #f4f6f3;
+  /* Farben (hell): Tinte & Messing */
+  --paper: #faf8f4;
   --surface: #ffffff;
-  --ink: #131b18;
-  --ink-soft: #46524e;
-  --ink-faint: #5d6a65;
-  --line: #d6ddd8;
-  --line-strong: #7d8b85;
-  --accent: #1d5a4a;
-  --accent-hover: #15473a;
-  --accent-soft: #e1ebe6;
+  --ink: #161b2a;
+  --ink-soft: #474d5e;
+  --ink-faint: #5f6576;
+  --line: #e2ded6;
+  --line-strong: #7f8494;
+  --accent: #1b2a4a;
+  --accent-hover: #0f1a33;
+  --accent-soft: #e8ebf2;
   --on-accent: #ffffff;
-  --band: #16302a;
-  --on-band: #e9f0ec;
-  --on-band-soft: #b5c9c0;
-  --video-bg: #1a2622;
-  --video-ink: #e9f0ec;
+  --brass: #a8873a;
+  --brass-soft: #f1e9d6;
+  --band: #1b2a4a;
+  --on-band: #f3f1ec;
+  --on-band-soft: #c3c9d8;
+  --video-bg: #1b2238;
+  --video-ink: #f3f1ec;
   --error: #a3261b;
   --error-soft: #fbeae8;
+
+  /* Tönung der Porträtfotos (in beiden Modi gleich) */
+  --photo-tone: #1b2a4a;
 
   /* Schriften */
   --font-display: "Newsreader", "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
@@ -48,44 +53,48 @@
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --paper: #0e1412;
-    --surface: #151d1a;
-    --ink: #e5ebe8;
-    --ink-soft: #b0bdb8;
-    --ink-faint: #93a19c;
-    --line: #27322e;
-    --line-strong: #66766f;
-    --accent: #8ccab6;
-    --accent-hover: #a8dac9;
-    --accent-soft: #1a2f29;
-    --on-accent: #0b1210;
-    --band: #1a2f29;
-    --on-band: #e5ebe8;
-    --on-band-soft: #b0c4bc;
-    --video-bg: #0a0f0d;
-    --video-ink: #e5ebe8;
+    --paper: #0f131d;
+    --surface: #161b28;
+    --ink: #e9e7e1;
+    --ink-soft: #b9bcc6;
+    --ink-faint: #9a9eab;
+    --line: #262c3b;
+    --line-strong: #687083;
+    --accent: #aebfe3;
+    --accent-hover: #c8d4ee;
+    --accent-soft: #1d2538;
+    --on-accent: #0f131d;
+    --brass: #c9a85e;
+    --brass-soft: #2c2717;
+    --band: #1b2440;
+    --on-band: #eceae4;
+    --on-band-soft: #bcc3d6;
+    --video-bg: #0a0d15;
+    --video-ink: #eceae4;
     --error: #f2998e;
     --error-soft: #3a1e1b;
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --paper: #0e1412;
-  --surface: #151d1a;
-  --ink: #e5ebe8;
-  --ink-soft: #b0bdb8;
-  --ink-faint: #93a19c;
-  --line: #27322e;
-  --line-strong: #66766f;
-  --accent: #8ccab6;
-  --accent-hover: #a8dac9;
-  --accent-soft: #1a2f29;
-  --on-accent: #0b1210;
-  --band: #1a2f29;
-  --on-band: #e5ebe8;
-  --on-band-soft: #b0c4bc;
-  --video-bg: #0a0f0d;
-  --video-ink: #e5ebe8;
+  --paper: #0f131d;
+  --surface: #161b28;
+  --ink: #e9e7e1;
+  --ink-soft: #b9bcc6;
+  --ink-faint: #9a9eab;
+  --line: #262c3b;
+  --line-strong: #687083;
+  --accent: #aebfe3;
+  --accent-hover: #c8d4ee;
+  --accent-soft: #1d2538;
+  --on-accent: #0f131d;
+  --brass: #c9a85e;
+  --brass-soft: #2c2717;
+  --band: #1b2440;
+  --on-band: #eceae4;
+  --on-band-soft: #bcc3d6;
+  --video-bg: #0a0d15;
+  --video-ink: #eceae4;
   --error: #f2998e;
   --error-soft: #3a1e1b;
   color-scheme: dark;
@@ -206,7 +215,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
   letter-spacing: -0.015em;
   line-height: 1;
 }
-.brand-dot { color: var(--accent); }
+.brand-dot { color: var(--brass); }
 .brand-domain {
   font-family: var(--font-mono);
   font-size: var(--fs-xs);
@@ -337,6 +346,25 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .portrait--sm span { font-size: 1.65rem; }
 .portrait--lg { width: 100%; aspect-ratio: 4 / 5; max-width: 100%; }
 .portrait--lg span { font-size: clamp(2.5rem, 2rem + 4vw, 5.5rem); }
+/* Foto-Behandlung: Schwarz-Weiß mit Tintenblau in den Schatten, für alle Porträts gleich */
+.portrait.has-photo { background: var(--photo-tone); }
+.portrait.has-photo > span { display: none; }
+.portrait img {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  object-position: 50% 22%;
+  filter: grayscale(1) contrast(1.08) brightness(1.04);
+}
+.portrait.has-photo::after {
+  content: "";
+  position: absolute; inset: 0;
+  background: var(--photo-tone);
+  mix-blend-mode: lighten;
+  opacity: 0.85;
+  pointer-events: none;
+}
+.portrait.has-photo small { color: #ffffff; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6); z-index: 1; }
 .portrait small {
   position: absolute;
   left: 10px; bottom: 8px;
@@ -349,9 +377,9 @@ button, input, select, textarea { font: inherit; color: inherit; }
 
 /* ---------- Siegel ---------- */
 .seal-bg { fill: var(--surface); }
-.seal-ring { fill: none; stroke: var(--accent); stroke-width: 1; }
-.seal-text { fill: var(--accent); font-family: var(--font-mono); font-size: 8.2px; font-weight: 500; }
-.seal-check { fill: none; stroke: var(--accent); stroke-width: 3.5; stroke-linecap: round; stroke-linejoin: round; }
+.seal-ring { fill: none; stroke: var(--brass); stroke-width: 1; }
+.seal-text { fill: var(--brass); font-family: var(--font-mono); font-size: 8.2px; font-weight: 500; }
+.seal-check { fill: none; stroke: var(--brass); stroke-width: 3.5; stroke-linecap: round; stroke-linejoin: round; }
 
 /* ---------- Startseite: Hero ---------- */
 .hero { padding-block: clamp(32px, 5vw, 64px) clamp(40px, 6vw, 72px); }
@@ -426,7 +454,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .fach-tile p { grid-column: 1 / -1; color: var(--ink-soft); font-size: var(--fs-sm); }
 .fach-count { font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--ink-faint); align-self: center; white-space: nowrap; }
 .fach-tile:hover h3 { color: var(--accent); }
-.fach-tile:hover { border-top-color: var(--accent); }
+.fach-tile:hover { border-top-color: var(--brass); }
 
 /* ---------- Karten ---------- */
 .card-grid { display: grid; gap: 20px; list-style: none; }
@@ -491,18 +519,18 @@ button, input, select, textarea { font: inherit; color: inherit; }
   font-style: italic;
   font-size: 2.75rem;
   line-height: 1;
-  color: var(--accent);
+  color: var(--brass);
 }
 .step h3 { font-size: var(--fs-md); }
 .step p { color: var(--ink-soft); }
 
 .promise { display: grid; gap: 28px; list-style: none; }
 @media (min-width: 800px) { .promise { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 40px; } }
-.promise li { display: grid; gap: 8px; align-content: start; padding-top: 18px; border-top: 2px solid var(--accent); }
+.promise li { display: grid; gap: 8px; align-content: start; padding-top: 18px; border-top: 2px solid var(--brass); }
 .promise h3 { font-size: var(--fs-md); }
 .promise p { color: var(--ink-soft); }
 
-.band { background: var(--band); color: var(--on-band); }
+.band { background: var(--band); color: var(--on-band); border-top: 3px solid var(--brass); }
 .band .wrap { padding-block: clamp(40px, 6vw, 72px); display: grid; gap: 24px; align-items: center; }
 @media (min-width: 900px) { .band .wrap { grid-template-columns: minmax(0, 1fr) auto; } }
 .band h2 { font-size: var(--fs-xl); color: var(--on-band); }
@@ -657,7 +685,7 @@ fieldset.field { border: 0; margin: 0; padding: 0; }
   font-size: var(--fs-sm); font-weight: 600; cursor: pointer;
 }
 .seal-btn svg { width: 32px; height: 32px; }
-.seal-btn:hover { border-color: var(--accent); }
+.seal-btn:hover { border-color: var(--brass); }
 .seal-pop {
   display: none;
   position: absolute; z-index: 30;
@@ -832,7 +860,7 @@ fieldset.field { border: 0; margin: 0; padding: 0; }
   border-radius: var(--radius);
   background: var(--surface);
 }
-.package--premium { border: 2px solid var(--accent); }
+.package--premium { border: 2px solid var(--brass); }
 .package-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
 .package h3 { font-size: var(--fs-xl); }
 .package .price { font-family: var(--font-mono); font-size: var(--fs-xs); color: var(--ink-faint); letter-spacing: 0.04em; text-transform: uppercase; }

@@ -1,6 +1,9 @@
 /*
  * Alle Inhalte des Portals an einer Stelle.
  * Ein neues Profil = ein neuer Eintrag in PROFILES (siehe README).
+ * Fotos: optional die Felder  foto: "assets/portraits/<slug>.jpg"  und
+ *        fotoNachweis: "Fotograf/in, Quelle, Lizenz"  ergänzen (siehe tools/portraits.py).
+ *        Ohne Foto zeigt das Profil automatisch die Initialen.
  * Alle Personen sind FIKTIV. Ähnlichkeiten mit realen Personen sind nicht beabsichtigt.
  */
 
